@@ -182,10 +182,10 @@ void drawAstolfo(Entity entity){
       };
       render.text(formatDoubleStr((double) Math.round(10 * entity.getHealth() / 2) / 10), 30 + adjustedX, 17.5f + adjustedY, 2, new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), 255).getRGB(), true);
       render.text(entity.getName(), 30 + adjustedX, 5 + adjustedY, 1, 0xFFFFFFFF, true);
-      gl.scissor(true);
-      gl.scissor((int)adjustedX * 2, Math.abs((client.getDisplaySize()[1] * 2 - (int)adjustedY * 2)) - (int)astolfoEndY * 2, 60 - 1, (int)astolfoEndY * 2 - 7);
+      //gl.scissor(true);
+      //gl.scissor((int)adjustedX * 2, Math.abs((client.getDisplaySize()[1] * 2 - (int)adjustedY * 2)) - (int)astolfoEndY * 2, 60 - 1, (int)astolfoEndY * 2 - 7);
       render.entityGui(entity, 10 + 5 + (int)adjustedX, 40 + 5 + (int)adjustedY, -200, 0, 20);
-      gl.scissor(false);
+      //gl.scissor(false);
       if (track && borderRadius != 0) {
          drawRoundedRectOutline(adjustedX, adjustedY, 150 + adjustedX, 50 + adjustedY, outerBorderRadius, 1, 0x96FFFFFF);
       } else if (track){ drawRectOutline(adjustedX, adjustedY, 150 + adjustedX, 50 + adjustedY, 1, 0x96FFFFFF);}
