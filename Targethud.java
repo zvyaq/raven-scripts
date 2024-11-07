@@ -193,8 +193,8 @@ void drawAstolfo(Entity entity){
 
 
 void dragLogic(int offsetX, int offsetY){
+int[] displaySize = client.getDisplaySize();
    if (keybinds.isMouseDown(0) && firstClick) {
-   int[] displaySize = client.getDisplaySize();
       int[] position = keybinds.getMousePosition();
       position[1] = displaySize[1] * 2 - position[1];
       firstX = position[0];
@@ -209,7 +209,6 @@ void dragLogic(int offsetX, int offsetY){
       track = false;
    };
    if (track) {
-      int[] displaySize = client.getDisplaySize();
       int[] position = keybinds.getMousePosition();
       position[1] = displaySize[1] * 2- position[1];
       int deltaX = position[0] - firstX;
