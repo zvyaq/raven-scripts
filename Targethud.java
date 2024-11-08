@@ -50,9 +50,9 @@ int dragY = 565;
 int firstX, firstY;
 boolean track = false;
 boolean firstClick = true;
-float timeMultiplier, offset, rangeSwing, followPlayerOffsetY, blurBackgroundRadius;
+float timeMultiplier, offset, rangeSwing, followPlayerOffsetY, blurBackgroundRadius, borderRadius, outerBorderRadius;
 boolean traditionHealthColor, followPlayer, showHudOnlyOnSwing, blurBackground, inChatOF;
-int theme, borderRadiusPercent, screenFollowPlayerOffsetX, screenFollowPlayerOffsetY, backgroundBrightness, backgroundOpacity, blurBackgroundPasses;
+int theme, borderRadiusPercent, screenFollowPlayerOffsetX, screenFollowPlayerOffsetY, backgroundBrightness, backgroundOpacity, blurBackgroundPasses, background;
 
 void onLoad() {
    modules.registerDescription("Visual settings:");
@@ -73,34 +73,33 @@ void onLoad() {
    if (config.get("dragX") != null || config.get("dragY") != null) {
       dragX = (int) Integer.parseInt(config.get("dragX")); x = dragX;
       dragY = (int) Integer.parseInt(config.get("dragY")); y = dragY;
-   };
+   }
    x = dragX;
    y = dragY;
    adjustedX = x / 2;
    adjustedY = y / 2;
-   modules.registerDescription("                                 -zvyaq");
+   modules.registerDescription("                     (zvyaq)");
 }
 
-void onEnable(){
+void onEnable() {
    updateComponents();
+   updatePaint();
 }
 
 
-void onPreUpdate(){
+void onPreUpdate() {
     inChatOF = client.getScreen().contains("Chat");
     int ticks = client.getPlayer().getTicksExisted();
-    if (ticks % 5 == 0) {
-        updateComponents();
-    };
+    if (ticks % 5 == 0) {updateComponents(); updatePaint();}
 }
 
-void updateComponents(){
-   //buttons
+void updateComponents() {
+   // buttons
    blurBackground = modules.getButton(scriptName, "Blur background");
    traditionHealthColor = modules.getButton("TargetHUD", "Traditional health color");
    followPlayer = modules.getButton(scriptName, "Follow player");
    showHudOnlyOnSwing = modules.getButton(scriptName, "Show hud only on swing");
-   //sliders
+   // sliders
    offset = (float) modules.getSlider("Settings", "Offset");
    timeMultiplier = (float) modules.getSlider("Settings", "Time multiplier");
    rangeSwing = (float) modules.getSlider("KillAura", "Range (swing)");
@@ -114,12 +113,19 @@ void updateComponents(){
    screenFollowPlayerOffsetX = (int) modules.getSlider(scriptName, "Screen x offset");
    screenFollowPlayerOffsetY = (int) modules.getSlider(scriptName, "Screen y offset");
    followPlayerOffsetY = (float) modules.getSlider(scriptName, "Y offset");
-   };
+   }
+}
+
+void updatePaint() {
+    borderRadius = 7f * borderRadiusPercent / 100;
+    outerBorderRadius = borderRadius + 3f;
+    Color backgroundHSB = Color.getHSBColor(0, 0, backgroundBrightness / 100f);
+    background = new Color(backgroundHSB.getRed(), backgroundHSB.getGreen(), backgroundHSB.getBlue(), backgroundOpacity).getRGB();
 }
 
 void onRenderTick(float partialTicks){
    //return if screen not empty
-   if (!client.getScreen().isEmpty() && !inChatOF) {return;};
+   if (!client.getScreen().isEmpty() && !inChatOF) return;
    
    //killaura vars
    Entity entity = modules.getKillAuraTarget();
@@ -131,14 +137,13 @@ void onRenderTick(float partialTicks){
    
    //drag logic
 
-   if (!followPlayer && inChatOF){dragLogic((int)renderedHudEndX * 2, (int)renderedHudEndY * 2);}else if (!inChatOF) {track = false;};
+   if (!followPlayer && inChatOF) dragLogic((int)renderedHudEndX * 2, (int)renderedHudEndY * 2); else if (!inChatOF) track = false;
    
    //render
 
    if (inChatOF || entity != null) {
-      if (inChatOF) {
-         entity = self;
-      } else if (showHudOnlyOnSwing && entity != null && self.getPosition().distanceTo(entity.getPosition()) - 0.5 >= rangeSwing) {return;};
+      if (inChatOF) entity = self; else
+      if (showHudOnlyOnSwing && entity != null && self.getPosition().distanceTo(entity.getPosition()) - 0.5 >= rangeSwing) return;
       
       //themes
       accent = traditionHealthColor ? getHealthColor(entity) : (theme == 0) ? getRainbow(1) : (theme > 0 && theme < accents.length) ? blendColors(accents[theme][0], accents[theme][1], 1) : new Color(0, 0, 0, 255);
@@ -146,26 +151,19 @@ void onRenderTick(float partialTicks){
       //follow player
 
       if(followPlayer) {
-            if (!render.isInView(entity)) {
-         return;
-         }
+        if (!render.isInView(entity)) return;
          followPlayer(renderedHudEndX, renderedHudEndY, entity, partialTicks);
-      } else if (dragX != x || dragY != y) {x = dragX; y = dragY; adjustedX = x / 2; adjustedY = y / 2;};
-      render.tracer(entity, 2, 0xFFFFFFFF, partialTicks);
+      } else if (dragX != x || dragY != y) x = dragX; y = dragY; adjustedX = x / 2; adjustedY = y / 2;
       drawAstolfo(entity);
-   };
+   }
 }
 
 void drawAstolfo(Entity entity){
-      float borderRadius = 7f * borderRadiusPercent / 100;
-      float outerBorderRadius = borderRadius + 3f;
-      Color backgroundHSB = Color.getHSBColor(0, 0, backgroundBrightness / 100f);
-      int background = new Color(backgroundHSB.getRed(), backgroundHSB.getGreen(), backgroundHSB.getBlue(), backgroundOpacity).getRGB();
-      if (borderRadius != 0){
-      if (blurBackground){
+      if (borderRadius != 0) {
+      if (blurBackground) {
       render.blur.prepare();
       render.roundedRect(adjustedX, adjustedY, astolfoEndX + adjustedX, astolfoEndY + adjustedY, outerBorderRadius, -1);
-      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);};
+      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);}
       render.roundedRect(adjustedX, adjustedY, astolfoEndX + adjustedX, astolfoEndY + adjustedY, outerBorderRadius, background);
       render.roundedRect(30 + adjustedX, 40 + adjustedY, 117.5f + 29.5f + adjustedX, 7.5f + 39.5f + adjustedY, borderRadius, new Color(clamp(accent.getRed() - 195, 0, 255), clamp(accent.getGreen() - 195, 0, 255), clamp(accent.getBlue() - 195, 0, 255), 255).getRGB());
       render.roundedRect(30 + adjustedX, 40 + adjustedY, 29.5f + adjustedX + (entity.getHealth() / entity.getMaxHealth()) * 117.5f, 7.5f + 39.5f + adjustedY, borderRadius, new Color(clamp(accent.getRed() - 77, 0, 255), clamp(accent.getGreen() - 77, 0, 255), clamp(accent.getBlue() - 77, 0, 255), 255).getRGB());   
@@ -174,7 +172,7 @@ void drawAstolfo(Entity entity){
       if (blurBackground) {
       render.blur.prepare();
       render.rect(adjustedX, adjustedY, astolfoEndX + adjustedX, astolfoEndY + adjustedY, -1);
-      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);};
+      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);}
       render.rect(adjustedX, adjustedY, astolfoEndX + adjustedX, astolfoEndY + adjustedY, background);
       render.rect(30 + adjustedX, 40 + adjustedY, 117.5f + 29.5f + adjustedX, 7.5f + 39.5f + adjustedY, new Color(clamp(accent.getRed() - 195, 0, 255), clamp(accent.getGreen() - 195, 0, 255), clamp(accent.getBlue() - 195, 0, 255), 255).getRGB());
       render.rect(30 + adjustedX, 40 + adjustedY, 29.5f + adjustedX + (entity.getHealth() / entity.getMaxHealth()) * 117.5f, 7.5f + 39.5f + adjustedY, new Color(clamp(accent.getRed() - 77, 0, 255), clamp(accent.getGreen() - 77, 0, 255), clamp(accent.getBlue() - 77, 0, 255), 255).getRGB());   
@@ -183,7 +181,7 @@ void drawAstolfo(Entity entity){
       render.text(formatDoubleStr((double) Math.round(10 * entity.getHealth() / 2) / 10), 30 + adjustedX, 17.5f + adjustedY, 2, new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), 255).getRGB(), true);
       render.text(entity.getName(), 30 + adjustedX, 5 + adjustedY, 1, 0xFFFFFFFF, true);
       //gl.scissor(true);
-      //gl.scissor((int)adjustedX * 2, Math.abs((client.getDisplaySize()[1] * 2 - (int)adjustedY * 2)) - (int)astolfoEndY * 2, 60 - 1, (int)astolfoEndY * 2 - 7);
+      //gl.scissor((int)adjustedX * 2, (client.getDisplaySize()[1] - (int)adjustedY) * 2 - (int)astolfoEndY * 2, 60 - 1, (int)astolfoEndY * 2 - 7);
       render.entityGui(entity, 10 + 5 + (int)adjustedX, 40 + 5 + (int)adjustedY, -200, 0, 20);
       //gl.scissor(false);
       if (track && borderRadius != 0) {
@@ -192,7 +190,7 @@ void drawAstolfo(Entity entity){
 }
 
 
-void dragLogic(int offsetX, int offsetY){
+void dragLogic(int offsetX, int offsetY) {
 int[] displaySize = client.getDisplaySize();
    if (keybinds.isMouseDown(0) && firstClick) {
       int[] position = keybinds.getMousePosition();
@@ -200,14 +198,12 @@ int[] displaySize = client.getDisplaySize();
       firstX = position[0];
       firstY = position[1];
       firstClick = false;
-   if (x <= firstX && firstX <= x + offsetX && y <= firstY && firstY <= y + offsetY) {
-      track = true;
-   };
-   };
+   if (x <= firstX && firstX <= x + offsetX && y <= firstY && firstY <= y + offsetY) track = true;
+   }
    if (!keybinds.isMouseDown(0)) {
       firstClick = true;
       track = false;
-   };
+   }
    if (track) {
       int[] position = keybinds.getMousePosition();
       position[1] = displaySize[1] * 2- position[1];
@@ -223,10 +219,10 @@ int[] displaySize = client.getDisplaySize();
       firstY = firstY + deltaY;
       config.set("dragX", Integer.toString(dragX));
       config.set("dragY", Integer.toString(dragY));
-   };
+   }
 }
 
-Color getHealthColor(Entity entity){
+Color getHealthColor(Entity entity) {
    return 
    (entity.getHealth() / entity.getMaxHealth() >= 0.75) ? new Color(3, 213, 2) : 
    (entity.getHealth() / entity.getMaxHealth() >= 0.5) ? new Color(212, 212, 1) : 
@@ -235,7 +231,7 @@ Color getHealthColor(Entity entity){
    new Color(0,0,0);
 }
 
-void followPlayer(float renderedHudEndX, float renderedHudEndY, Entity entity, float partialTicks){//winnie
+void followPlayer(float renderedHudEndX, float renderedHudEndY, Entity entity, float partialTicks) { // winnie
    Vec3 position = entity.getPosition();
    Vec3 lastPosition = entity.getLastPosition();
    position.x = interpolate(position.x, lastPosition.x, partialTicks);
@@ -250,11 +246,11 @@ void followPlayer(float renderedHudEndX, float renderedHudEndY, Entity entity, f
    y = (int)(adjustedY * 2);
 }
 
-double interpolate(double current, double old, float scale){//winnie
+double interpolate(double current, double old, float scale) { // winnie
     return old + (current - old) * scale;
 }
 
-void drawRectOutline(float x1, float y1, float x2, float y2, float width, int color){
+void drawRectOutline(float x1, float y1, float x2, float y2, float width, int color) { // pug
     render.line2D(x1, y1, x2, y1, width, color);
     render.line2D(x1, y2, x2, y2, width, color);
     render.line2D(x1, y1, x1, y2, width, color);
@@ -262,7 +258,7 @@ void drawRectOutline(float x1, float y1, float x2, float y2, float width, int co
 }
 
 
-void drawRoundedRectOutline(float x1, float y1, float x2, float y2, float radius, float width, int color){ //pug
+void drawRoundedRectOutline(float x1, float y1, float x2, float y2, float radius, float width, int color) { // pug
     if (x1 > x2) {
         float temp = x1;
         x1 = x2;
@@ -307,18 +303,18 @@ void drawRoundedRectOutline(float x1, float y1, float x2, float y2, float radius
     }
 }
 
-Color getRainbow(int i){
+Color getRainbow(int i) { // pug
    float hue = ((client.time() + i * (int) (10 * offset))  % (int) ( 15000 / timeMultiplier)) / (float) ( 15000 / timeMultiplier); 
    return Color.getHSBColor(hue, 1f, 1f);
 }
 
-double getWaveRatio(int i){
+double getWaveRatio(int i) { // pug
    float time = ((client.time() + i * (int) (10 * offset)) % (int) (3000 / timeMultiplier)) / (float) (3000 / timeMultiplier);
    double waveRatio = (time <= 0.5) ? (time * 2) : (2 - time * 2);
    return waveRatio;
 }
 
-Color blendColors(Color color1, Color color2, int i){
+Color blendColors(Color color1, Color color2, int i) { // pug 
    double ratio = getWaveRatio(i);
    int r = clamp((int) (color1.getRed() * ratio + color2.getRed() * (1 - ratio)), 0, 255);
    int g = clamp((int) (color1.getGreen() * ratio + color2.getGreen() * (1 - ratio)), 0, 255);
@@ -326,14 +322,14 @@ Color blendColors(Color color1, Color color2, int i){
    return new Color(r, g, b);
 }
 
-int clamp(int val, int min, int max){
+int clamp(int val, int min, int max) { // pug
    return (val < min) ? min : (val > max) ? max : val;
 }
 
-float clampFloat(float val, float min, float max){
+float clampFloat(float val, float min, float max) { // pug
    return (val < min) ? min : (val > max) ? max : val;
 }
 
-String formatDoubleStr(double val) {
+String formatDoubleStr(double val) { // pug
     return val == (long) val ? Long.toString((long) val) : Double.toString(val);
 }
