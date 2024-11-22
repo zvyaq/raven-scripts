@@ -38,6 +38,7 @@ void onPreUpdate() {
                 0;
         Map<String, Object> object = new HashMap<>();
         object.put("name", player.getName());
+        object.put("distance", distance);
         object.put("distanceText", distance + "m");
         object.put("distanceColor", distanceColor);
         players.add(object);
