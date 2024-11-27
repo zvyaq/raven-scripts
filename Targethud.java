@@ -1,3 +1,9 @@
+//zvyaq
+
+String[] TargetHuds = {"Astolfo", "Old Astolfo", "Very Old Astolfo"};
+
+//Colors
+
 final Color Cherry1 = new Color(243, 58, 106);
 final Color Cherry2 = new Color(253, 178, 185);
 
@@ -41,6 +47,12 @@ Color[][] accents = {
 final float astolfoEndX = 150;
 final float astolfoEndY = 50;
 
+final float veryOldAstolfoEndX = 305 / 2;
+final float veryOldAstolfoEndY = 107 / 2;
+
+final float oldAstolfoEndX = 253 / 2;
+final float oldAstolfoEndY = 90 / 2;
+
 Color accent = new Color(0, 0, 0, 255);
 
 float adjustedX, adjustedY;
@@ -52,9 +64,10 @@ boolean track = false;
 boolean firstClick = true;
 float timeMultiplier, offset, rangeSwing, followPlayerOffsetY, blurBackgroundRadius, borderRadius, outerBorderRadius;
 boolean traditionHealthColor, followPlayer, showHudOnlyOnSwing, blurBackground, inChatOF;
-int theme, borderRadiusPercent, screenFollowPlayerOffsetX, screenFollowPlayerOffsetY, backgroundBrightness, backgroundOpacity, blurBackgroundPasses, background;
+int theme, borderRadiusPercent, screenFollowPlayerOffsetX, screenFollowPlayerOffsetY, backgroundBrightness, backgroundOpacity, blurBackgroundPasses, background, TargetHud;
 
 void onLoad() {
+   modules.registerSlider("Target hud", "", 0, TargetHuds);
    modules.registerDescription("Visual settings:");
    modules.registerSlider("Border radius", "%", 25, 0, 50, 0.5);
    modules.registerSlider("Background brightness", "%", 0, 0, 100, 1);
@@ -78,7 +91,6 @@ void onLoad() {
    y = dragY;
    adjustedX = x / 2;
    adjustedY = y / 2;
-   modules.registerDescription("                     (zvyaq)");
 }
 
 void onEnable() {
@@ -109,6 +121,7 @@ void updateComponents() {
    borderRadiusPercent = (int) modules.getSlider(scriptName, "Border radius");
    backgroundBrightness = (int) modules.getSlider(scriptName, "Background brightness");
    backgroundOpacity = (int) modules.getSlider(scriptName, "Background opacity");
+   TargetHud =  (int) modules.getSlider(scriptName, "Target hud");
    if (followPlayer){
    screenFollowPlayerOffsetX = (int) modules.getSlider(scriptName, "Screen x offset");
    screenFollowPlayerOffsetY = (int) modules.getSlider(scriptName, "Screen y offset");
@@ -117,13 +130,27 @@ void updateComponents() {
 }
 
 void updatePaint() {
-    borderRadius = 7f * borderRadiusPercent / 100;
-    outerBorderRadius = borderRadius + 3f;
+   switch (TargetHud) {
+   case 0:
+   borderRadius = 7f * borderRadiusPercent / 100;
+   outerBorderRadius = borderRadius + 3f;
+   break;
+   case 1:
+   borderRadius = 10f * borderRadiusPercent / 100;
+   outerBorderRadius = borderRadius + 5f;
+   break;
+   case 2:
+   borderRadius = 12f * borderRadiusPercent / 100;
+   outerBorderRadius = borderRadius + 3f;
+   break;
+   };
     Color backgroundHSB = Color.getHSBColor(0, 0, backgroundBrightness / 100f);
     background = new Color(backgroundHSB.getRed(), backgroundHSB.getGreen(), backgroundHSB.getBlue(), backgroundOpacity).getRGB();
 }
 
 void onRenderTick(float partialTicks){
+   float renderedHudEndX = 0;
+   float renderedHudEndY = 0;
    //return if screen not empty
    if (!client.getScreen().isEmpty() && !inChatOF) return;
    
@@ -132,8 +159,20 @@ void onRenderTick(float partialTicks){
    Entity self = client.getPlayer();
 
    //render
-   float renderedHudEndX = astolfoEndX;
-   float renderedHudEndY = astolfoEndY;
+   switch (TargetHud) {
+   case 0:
+   renderedHudEndX = astolfoEndX;
+   renderedHudEndY = astolfoEndY;
+   break;
+   case 1:
+   renderedHudEndX = oldAstolfoEndX;
+   renderedHudEndY = oldAstolfoEndY;
+   break;
+   case 2:
+   renderedHudEndX = veryOldAstolfoEndX;
+   renderedHudEndY = veryOldAstolfoEndY;
+   break;
+   };
    
    //drag logic
 
@@ -154,7 +193,17 @@ void onRenderTick(float partialTicks){
         if (!render.isInView(entity)) return;
          followPlayer(renderedHudEndX, renderedHudEndY, entity, partialTicks);
       } else if (dragX != x || dragY != y) x = dragX; y = dragY; adjustedX = x / 2; adjustedY = y / 2;
+      switch (TargetHud) {
+      case 0:
       drawAstolfo(entity);
+      break;
+      case 1:
+      drawOldAstolfo(entity);
+      break;
+      case 2:
+      drawVeryOldAstolfo(entity);
+      break;
+      }
    }
 }
 
@@ -185,8 +234,80 @@ void drawAstolfo(Entity entity){
       render.entityGui(entity, 10 + 5 + (int)adjustedX, 40 + 5 + (int)adjustedY, -200, 0, 20);
       //gl.scissor(false);
       if (track && borderRadius != 0) {
-         drawRoundedRectOutline(adjustedX, adjustedY, 150 + adjustedX, 50 + adjustedY, outerBorderRadius, 1, 0x96FFFFFF);
-      } else if (track){ drawRectOutline(adjustedX, adjustedY, 150 + adjustedX, 50 + adjustedY, 1, 0x96FFFFFF);}
+         drawRoundedRectOutline(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, outerBorderRadius, 1, 0x96FFFFFF);
+      } else if (track){ drawRectOutline(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, 1, 0x96FFFFFF);}
+}
+
+void drawOldAstolfo(Entity entity){
+      if (borderRadius != 0) {
+      if (blurBackground) {
+      render.blur.prepare();
+      render.roundedRect(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, outerBorderRadius, -1);
+      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);}
+      render.roundedRect(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, outerBorderRadius, background);
+
+      render.roundedRect(25 + adjustedX, 15 + adjustedY, 25 + adjustedX + (entity.getHealth() / entity.getMaxHealth()) * 192 / 2, 15 + 10 + adjustedY, borderRadius, accent.getRGB());   
+      
+      
+      } else { //no border radius
+      if (blurBackground) {
+      render.blur.prepare();
+      render.rect(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, -1);
+      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);}
+      render.rect(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, background);
+
+      render.rect(25 + adjustedX, 15 + adjustedY, 25 + adjustedX + (entity.getHealth() / entity.getMaxHealth()) * 192 / 2, 15 + 10 + adjustedY, accent.getRGB());   
+      
+      
+      };
+      render.text(formatDoubleStr((double) Math.round(10 * entity.getHealth() / 2) / 10), 25 + 40 + adjustedX, 16 + adjustedY, 1, accent.getRGB(), true);
+      render.text(entity.getName(), 25 + adjustedX, 3 + adjustedY, 1, 0xFFFFFFFF, true);
+      //gl.scissor(true);
+      //gl.scissor((int)adjustedX * 2, (client.getDisplaySize()[1] - (int)adjustedY) * 2 - (int)oldAstolfoEndY * 2, 60 - 1, (int)oldAstolfoEndY * 2 - 7);
+      render.entityGui(entity, 10 + 3 + (int)adjustedX, 40 + 3 + (int)adjustedY, 200, -entity.getPitch(), 20);
+      //gl.scissor(false);
+      if (track && borderRadius != 0) {
+         drawRoundedRectOutline(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, outerBorderRadius, 1, 0x96FFFFFF);
+      } else if (track){ drawRectOutline(adjustedX, adjustedY, oldAstolfoEndX + adjustedX, oldAstolfoEndY + adjustedY, 1, 0x96FFFFFF);}
+}
+
+void drawVeryOldAstolfo(Entity entity){
+      if (borderRadius != 0) {
+      if (blurBackground) {
+      render.blur.prepare();
+      render.roundedRect(adjustedX, adjustedY, veryOldAstolfoEndX + adjustedX, veryOldAstolfoEndY + adjustedY, outerBorderRadius, -1);
+      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);}
+      render.roundedRect(adjustedX, adjustedY, veryOldAstolfoEndX + adjustedX, veryOldAstolfoEndY + adjustedY, outerBorderRadius, background);
+
+
+
+      render.roundedRect(33 + adjustedX, 17.5f + adjustedY, 114 + 33 + adjustedX, 17.5f + 12 + adjustedY, borderRadius, 0xFF000000);
+      render.roundedRect(33 + adjustedX, 17.5f + adjustedY, 33 + adjustedX + (entity.getHealth() / entity.getMaxHealth()) * 114, 17.5f + 12 + adjustedY, borderRadius, accent.getRGB());   
+      
+      
+      } else { //no border radius
+      if (blurBackground) {
+      render.blur.prepare();
+      render.rect(adjustedX, adjustedY, veryOldAstolfoEndX + adjustedX, veryOldAstolfoEndY + adjustedY, -1);
+      render.blur.apply(blurBackgroundPasses, blurBackgroundRadius);}
+      render.rect(adjustedX, adjustedY, veryOldAstolfoEndX + adjustedX, veryOldAstolfoEndY + adjustedY, background);
+
+
+      render.rect(33 + adjustedX, 17.5f + adjustedY, 114 + 33 + adjustedX, 17.5f + 12 + adjustedY, 0xFF000000);
+      render.rect(33 + adjustedX, 17.5f + adjustedY, 33 + adjustedX + (entity.getHealth() / entity.getMaxHealth()) * 114, 17.5f + 12 + adjustedY, accent.getRGB());   
+      
+      
+      };
+      render.text(formatDoubleStr((double) Math.round(10 * entity.getHealth() / 2) / 10), 33 + 53 + adjustedX, 17.5f + 1.5f + adjustedY, 1, accent.getRGB(), true);
+      render.text(entity.getName(), 33 + adjustedX, 6.5f + adjustedY, 1, 0xFFFFFFFF, true);
+      render.text("ping: " + entity.getNetworkPlayer().getPing(), 33 + adjustedX, 6.5f + 26 + adjustedY, 1, 0xFFFFFFFF, true);
+      //gl.scissor(true);
+      //gl.scissor((int)adjustedX * 2, (client.getDisplaySize()[1] - (int)adjustedY) * 2 - (int)veryOldAstolfoEndY * 2, 60 - 1, (int)veryOldAstolfoEndY * 2 - 7);
+      render.entityGui(entity, 10 + 5 + (int)adjustedX, 40 + 8 + (int)adjustedY, -200, 0, 20);
+      //gl.scissor(false);
+      if (track && borderRadius != 0) {
+         drawRoundedRectOutline(adjustedX, adjustedY, veryOldAstolfoEndX + adjustedX, veryOldAstolfoEndY + adjustedY, outerBorderRadius, 1, 0x96FFFFFF);
+      } else if (track){ drawRectOutline(adjustedX, adjustedY, veryOldAstolfoEndX + adjustedX, veryOldAstolfoEndY + adjustedY, 1, 0x96FFFFFF);}
 }
 
 
