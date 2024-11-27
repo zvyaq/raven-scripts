@@ -300,7 +300,7 @@ void drawVeryOldAstolfo(Entity entity){
       };
       render.text(formatDoubleStr((double) Math.round(10 * entity.getHealth() / 2) / 10), 33 + 53 + adjustedX, 17.5f + 1.5f + adjustedY, 1, accent.getRGB(), true);
       render.text(entity.getName(), 33 + adjustedX, 6.5f + adjustedY, 1, 0xFFFFFFFF, true);
-      render.text("ping: " + entity.getNetworkPlayer().getPing(), 33 + adjustedX, 6.5f + 26 + adjustedY, 1, 0xFFFFFFFF, true);
+      render.text("Ping: " + entity.getNetworkPlayer().getPing(), 33 + adjustedX, 6.5f + 26 + adjustedY, 1, 0xFFFFFFFF, true);
       //gl.scissor(true);
       //gl.scissor((int)adjustedX * 2, (client.getDisplaySize()[1] - (int)adjustedY) * 2 - (int)veryOldAstolfoEndY * 2, 60 - 1, (int)veryOldAstolfoEndY * 2 - 7);
       render.entityGui(entity, 10 + 5 + (int)adjustedX, 40 + 8 + (int)adjustedY, -200, 0, 20);
